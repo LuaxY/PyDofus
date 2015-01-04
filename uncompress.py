@@ -1,6 +1,6 @@
 import io, sys, os
-from pydofus.d2p import D2PReader, InvalidD2PFile, _BinaryStream
-from pydofus.swl import SWLReader, InvalidSWLFile, _BinaryStream
+from pydofus.d2p import D2PReader, InvalidD2PFile
+from pydofus.swl import SWLReader, InvalidSWLFile
 
 path_input = "./input/"
 path_output = "./output/"
@@ -33,13 +33,11 @@ for file in os.listdir(path_input):
                     swl_reader = SWLReader(swl)
 
                     swf = open(path_output + file_name + "/" + name.replace("swl", "swf"), "wb+")
-                    swf_binary = _BinaryStream(swf, True)
-                    swf_binary.write_bytes(swl_reader.SWF)
+                    swf.write(swl_reader.SWF)
                     swf.close()
 
                 file_output = open(path_output + file_name + "/" + name, "wb+")
-                file_binary = _BinaryStream(file_output, True)
-                file_binary.write_bytes(specs["binary"])
+                file_output.write(specs["binary"])
                 file_output.close()
                 pass
         except InvalidD2PFile:
