@@ -91,15 +91,21 @@ The above exemple build the same file as the template as it build the same SWF f
 
 #####Decompilation
 
-Place .d2p files in input folder and run uncompress.py
+Place .d2p files in `./input` folder and run uncompress.py
 
 `python uncompress.py`
 
-Data extracted is located in output folder.
+Data extracted is located in `./output` folder.
 
 #####Compilation
 
-TODO
+Place original .d2p in `./input` folder, uncompress it  
+Edit your files in `./output/your-file.d2p`  
+And now run compress.py
+
+`python compress.py your-file.d2p`
+
+Data extracted is located in `./output/~generated` folder.
 
 ###Authors
 
