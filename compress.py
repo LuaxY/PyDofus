@@ -1,4 +1,4 @@
-import io, sys, os, tempfile
+import io, sys, os, tempfile, fnmatch
 from collections import OrderedDict
 from pydofus.d2p import D2PReader, D2PBuilder, InvalidD2PFile
 from pydofus.swl import SWLReader, SWLBuilder, InvalidSWLFile
@@ -30,39 +30,45 @@ else:
 
     list_files = OrderedDict()
 
-    for name, specs in d2p_template.files.items():
-        print("pack file " + file + "/" + name)
+    rootPath = path_output + file
 
-        object_ = {}
+    for root, dirs, files in os.walk(rootPath):
+        for filename in fnmatch.filter(files, "*.*"):
+            path = os.path.join(root, filename).replace("\\", "/")
+            file = path.replace(rootPath + "/", "")
+            print("pack file " + file)
 
-        if "swl" in name:
-            print("swl file compression")
-            swl_input = open(path_output + file + "/" + name, "rb")
-            swl_template = SWLReader(swl_input)
+            object_ = {}
 
-            swl_output = tempfile.TemporaryFile()
-            swl_builder = SWLBuilder(swl_template, swl_output)
+            if "swl" in file:
+                print("swl file compression")
+                swl_input = open(path, "rb")
+                swl_template = SWLReader(swl_input)
 
-            swf = open(path_output + file + "/" + name.replace("swl", "swf"), "rb")
+                swl_output = tempfile.TemporaryFile()
+                swl_builder = SWLBuilder(swl_template, swl_output)
 
-            swl_builder.SWF = swf.read()
-            swl_builder.build()
+                swf = open(path.replace("swl", "swf"), "rb")
 
-            swl_output.seek(0)
-            object_["binary"] = swl_output.read()
+                swl_builder.SWF = swf.read()
+                swl_builder.build()
 
-            swf.close()
-            swl_input.close()
-            swl_output.close()
-        else:
-            new_file = open(path_output + file + "/" + name, "rb")
-            object_["binary"] = new_file.read()
-            new_file.close()
+                swl_output.seek(0)
+                object_["binary"] = swl_output.read()
 
-        list_files[name] = object_
+                swf.close()
+                swl_input.close()
+                swl_output.close()
+            elif "swf" in file:
+                continue
+            else:
+                new_file = open(path, "rb")
+                object_["binary"] = new_file.read()
+                new_file.close()
+
+            list_files[file] = object_
 
     d2p_builder.files = list_files
-
     d2p_builder.build()
 
     d2p_input.close()
