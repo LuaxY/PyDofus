@@ -49,7 +49,7 @@ class SWLReader:
 
         i = 0
         while i < classes_count:
-            class_ = (SWL_file_binary.read_string()).decode()
+            class_ = (SWL_file_binary.read_string()).decode('utf-8')
             if class_ == b"":
                 raise InvalidSWLFile("The file appears to be corrupt.")
             self._classes.append(class_)

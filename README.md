@@ -86,3 +86,22 @@ builded_stream.close()
 ```
 
 The above exemple build the same file as the template as it build the same SWF file. SWL builded file will be exactly the same as the original file. (Checksums are same)
+
+###Automated scripts
+
+#####Decompilation
+
+Place .d2p files in input folder and run uncompress.py
+
+`python uncompress.py`
+
+Data extracted is located in output folder.
+
+#####Compilation
+
+TODO
+
+###Authors
+
+**Marvin Roger** ([marvinroger](https://github.com/marvinroger)) : d2p/swl compress and uncompress lib  
+**Yann Guineau** ([LuaxY](https://github.com/LuaxY)) : automated script for uncompress d2p/swl
