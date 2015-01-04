@@ -110,4 +110,4 @@ Data extracted is located in `./output/~generated` folder.
 ###Authors
 
 **Marvin Roger** ([marvinroger](https://github.com/marvinroger)) : d2p/swl compress and uncompress lib  
-**Yann Guineau** ([LuaxY](https://github.com/LuaxY)) : automated script for uncompress d2p/swl
+**Yann Guineau** ([LuaxY](https://github.com/LuaxY)) : automated script for compress/uncompress d2p/swl
