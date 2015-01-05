@@ -89,7 +89,7 @@ class SWLBuilder:
     def __init__(self, template, target):
         self._template = template
         self._target = target
-        self._SWF = self._template.SWF
+        self._SWF = self._template["SWF"]
 
     def build(self):
         """Create the SWL represented by the class in the given stream."""
@@ -97,11 +97,11 @@ class SWLBuilder:
 
         SWL_file_build_binary.write_char(76)
 
-        SWL_file_build_binary.write_char(self._template.version)
-        SWL_file_build_binary.write_uint32(self._template.frame_rate)
-        SWL_file_build_binary.write_int32(len(self._template.classes))
+        SWL_file_build_binary.write_char(self._template["version"])
+        SWL_file_build_binary.write_uint32(self._template["frame_rate"])
+        SWL_file_build_binary.write_int32(len(self._template["classes"]))
 
-        for class_ in self._template.classes:
+        for class_ in self._template["classes"]:
             SWL_file_build_binary.write_string((class_).encode())
 
         SWL_file_build_binary.write_bytes(self._SWF)

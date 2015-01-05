@@ -1,4 +1,4 @@
-import io, sys, os
+import io, sys, os, json
 from pydofus.d2p import D2PReader, InvalidD2PFile
 from pydofus.swl import SWLReader, InvalidSWLFile
 
@@ -15,7 +15,7 @@ for file in os.listdir(path_input):
         except:
             os.mkdir(path_output + file_name)
 
-        print("D2P Extractor for " + file_name)
+        print("D2P Unpacker for " + file_name)
 
         try:
             d2p_reader = D2PReader(d2p_file, False)
@@ -32,13 +32,19 @@ for file in os.listdir(path_input):
                     swl = io.BytesIO(specs["binary"])
                     swl_reader = SWLReader(swl)
 
-                    swf = open(path_output + file_name + "/" + name.replace("swl", "swf"), "wb+")
-                    swf.write(swl_reader.SWF)
-                    swf.close()
+                    swf_output = open(path_output + file_name + "/" + name.replace("swl", "swf"), "wb")
+                    json_output = open(path_output + file_name + "/" + name.replace("swl", "json"), "w")
 
-                file_output = open(path_output + file_name + "/" + name, "wb+")
-                file_output.write(specs["binary"])
-                file_output.close()
+                    swf_output.write(swl_reader.SWF)
+                    swl_data = {'version':swl_reader.version, 'frame_rate':swl_reader.frame_rate, 'classes':swl_reader.classes}
+                    json.dump(swl_data, json_output, indent=4)
+
+                    swf_output.close()
+                    json_output.close()
+                else:
+                    file_output = open(path_output + file_name + "/" + name, "wb")
+                    file_output.write(specs["binary"])
+                    file_output.close()
                 pass
         except InvalidD2PFile:
             pass
