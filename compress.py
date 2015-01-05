@@ -12,8 +12,13 @@ try:
 except:
     file = None
 
-if file is None:
-    print("usage: python compress.py {d2p file}")
+try:
+    mode = sys.argv[2]
+except:
+    mode = None
+
+if file is None or mode is None:
+    print("usage: python compress.py {d2p file} {swl mode true|false}")
 else:
     print("D2P Compressor for " + file)
 
@@ -40,7 +45,7 @@ else:
 
             object_ = {}
 
-            if "swl" in file:
+            if "swl" in file and mode == "true":
                 print("swl file compression")
                 swl_input = open(path, "rb")
                 swl_template = SWLReader(swl_input)
@@ -59,7 +64,7 @@ else:
                 swf.close()
                 swl_input.close()
                 swl_output.close()
-            elif "swf" in file:
+            elif "swf" in file and mode == "mode":
                 continue
             else:
                 new_file = open(path, "rb")
