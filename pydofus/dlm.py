@@ -106,9 +106,21 @@ class Map:
                     self.presetId = -1
 
                 self.backgroundsCount = self._raw.read_char()
-                # TODO: Fixture
+
+                self.backgroundFixtures = []
+                for i in range(0, self.backgroundsCount):
+                    bg = Fixture(self)
+                    bg.read()
+                    self.backgroundFixtures.append(bg)
+
                 self.foregroundsCount = self._raw.read_char()
-                # TODO: Fixture
+
+                self.backgroundFixtures = []
+                for i in range(0, self.foregroundsCount):
+                    fg = Fixture(self)
+                    fg.read()
+                    self.foregroundsFixtures.append(fg)
+
                 self.cellsCount = 560 # MAP_CELLS_COUNT
                 self.unknown_1 = self._raw.read_int32()
                 self.groundCRC = self._raw.read_int32()
@@ -155,7 +167,17 @@ class Map:
         print("useReverb: " + str(self.useReverb))
         print("presetId: " + str(self.presetId))
         print("backgroundsCount: " + str(self.backgroundsCount))
+
+        for i in range(0, self.backgroundsCount):
+            bg = self.backgroundFixtures[i]
+            bg.debug()
+
         print("foregroundsCount: " + str(self.foregroundsCount))
+
+        for i in range(0, self.foregroundsCount):
+            fg = self.foregroundsFixtures[i]
+            fg.debug()
+
         print("cellsCount: " + str(self.cellsCount))
         print("unknown_1: " + str(self.unknown_1))
         print("groundCRC: " + str(self.groundCRC))
@@ -180,13 +202,33 @@ class Fixture:
         self._raw = map._raw
 
     def read(self):
-        pass
+        self.fixtureId = self._raw.read_int32()
+        self.offsetX = self._raw.read_int16()
+        self.offsetY = self._raw.read_int16()
+        self.rotation = self._raw.read_int16()
+        self.xScale = self._raw.read_int16()
+        self.yScale = self._raw.read_int16()
+        self.redMultiplier = self._raw.read_char()
+        self.greenMultiplier = self._raw.read_char()
+        self.blueMultiplier =  self._raw.read_char()
+        self.hue = self.redMultiplier | self.greenMultiplier | self.blueMultiplier
+        self.alpha =  self._raw.read_uchar()
 
     def write(self):
         pass
 
     def debug(self):
-        pass
+        print("\tfixtureId: " + str(self.fixtureId))
+        print("\toffsetX: " + str(self.offsetX))
+        print("\toffsetY: " + str(self.offsetY))
+        print("\trotation: " + str(self.rotation))
+        print("\txScale: " + str(self.xScale))
+        print("\tyScale: " + str(self.yScale))
+        print("\tredMultiplier: " + str(self.redMultiplier))
+        print("\tgreenMultiplier: " + str(self.greenMultiplier))
+        print("\tblueMultiplier: " + str(self.blueMultiplier))
+        print("\thue: " + str(self.hue))
+        print("\talpha: " + str(self.alpha))
 
 class Layer:
     def __init__(self, map, mapVersion):
@@ -277,7 +319,15 @@ class CellData:
         pass
 
     def debug(self):
-        pass
+        print("\tfloor: " + str(self.floor))
+        print("\tlosmov: " + str(self.losmov))
+        print("\tspeed: " + str(self.speed))
+        print("\tmapChangeData: " + str(self.mapChangeData))
+
+        if self.mapVersion > 5:
+            print("\tmoveZone: " + str(self.moveZone))
+        if self.mapVersion > 7:
+            print("\tarrow: " + str(self.arrow))
 
     def useTopArrow(self):
         if (self.arrow & 1) == 0:
