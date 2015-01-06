@@ -380,11 +380,11 @@ class GraphicalElement:
         self._raw.read_byte()
 
         if self.mapVersion <= 4:
-            self.pixelOffsetX = self._raw.read_char()
-            self.pixelOffsetY = self._raw.read_char()
+            self.offsetX = self._raw.read_char()
+            self.offsetY = self._raw.read_char()
         else:
-            self.pixelOffsetX = self._raw.read_int16()
-            self.pixelOffsetY = self._raw.read_int16()
+            self.offsetX = self._raw.read_int16()
+            self.offsetY = self._raw.read_int16()
 
         self.altitude = self._raw.read_char()
         self.identifier = self._raw.read_uint32()
@@ -394,8 +394,8 @@ class GraphicalElement:
 
     def debug(self):
         print("\t\t\telementId: " + str(self.elementId))
-        print("\t\t\tpixelOffsetX: " + str(self.pixelOffsetX))
-        print("\t\t\tpixelOffsetY: " + str(self.pixelOffsetY))
+        print("\t\t\toffsetX: " + str(self.offsetX))
+        print("\t\t\toffsetY: " + str(self.offsetY))
         print("\t\t\taltitude: " + str(self.altitude))
         print("\t\t\tidentifier: " + str(self.identifier))
 
