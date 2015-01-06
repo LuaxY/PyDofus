@@ -3,7 +3,6 @@
 
 from struct import *
 
-
 class _BinaryStream:
     """Allow some binary operations on a stream opened in binary mode"""
     def __init__(self, base_stream, big_endian=False):
@@ -71,6 +70,13 @@ class _BinaryStream:
         else:
             bytes = self._base_stream.read(length)
         return bytes
+
+    def read_bool(self):
+        bool = self._base_stream.read(1)[0]
+        if bool == 1:
+            return True
+        else:
+            return False
 
     def read_char(self):
         return self._unpack('b')
