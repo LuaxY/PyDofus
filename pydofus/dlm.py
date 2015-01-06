@@ -3,7 +3,6 @@
 
 import zlib, tempfile, io
 from ._binarystream import _BinaryStream
-from collections import OrderedDict
 
 class InvalidDLMFile(Exception):
     def __init__(self, message):
@@ -42,16 +41,19 @@ class DLMReader:
 
         DLM_file_binary = _BinaryStream(self._stream, True)
 
-        m = Map(DLM_file_binary, self._key)
-        m.read()
-        m.debug()
+        self._map = Map(DLM_file_binary, self._key)
+        self._map.read()
 
         self._loaded = True
+
+    def json(self):
+        return self._map.json()
 
 class Map:
     def __init__(self, raw, key):
         self._raw = raw
         self._key = key
+        self._obj = {}
 
         self.topArrowCell = []
         self.bottomArrowCell = []
@@ -59,16 +61,16 @@ class Map:
         self.rightArrowCell = []
 
     def read(self):
-        self.header = self._raw.read_char()
-        self.mapVersion = self._raw.read_char()
-        self.mapId = self._raw.read_uint32()
+        self._obj["header"] = self._raw.read_char()
+        self._obj["mapVersion"] = self._raw.read_char()
+        self._obj["mapId"] = self._raw.read_uint32()
 
-        if self.mapVersion >= 7:
-            self.encrypted = self._raw.read_bool()
-            self.encryptionVersion = self._raw.read_char()
+        if self._obj["mapVersion"] >= 7:
+            self._obj["encrypted"] = self._raw.read_bool()
+            self._obj["encryptionVersion"] = self._raw.read_char()
             self.dataLen = self._raw.read_int32()
 
-            if self.encrypted:
+            if self._obj["encrypted"]:
                 self.encryptedData = self._raw.read_bytes(self.dataLen)
                 decryptedData = bytearray()
                 for i in range(0, self.dataLen):
@@ -77,228 +79,158 @@ class Map:
                 tmp = io.BytesIO(decryptedData)
                 self._raw = _BinaryStream(tmp, True)
 
-        self.relativeId = self._raw.read_uint32()
-        self.mapType = self._raw.read_char()
-        self.subareaId = self._raw.read_int32()
-        self.topNeighbourId = self._raw.read_int32()
-        self.bottomNeighbourId = self._raw.read_int32()
-        self.leftNeighbourId = self._raw.read_int32()
-        self.rightNeighbourId = self._raw.read_int32()
-        self.shadowBonusOnEntities  = self._raw.read_int32()
+        self._obj["relativeId"] = self._raw.read_uint32()
+        self._obj["mapType"] = self._raw.read_char()
+        self._obj["subareaId"] = self._raw.read_int32()
+        self._obj["topNeighbourId"] = self._raw.read_int32()
+        self._obj["bottomNeighbourId"] = self._raw.read_int32()
+        self._obj["leftNeighbourId"] = self._raw.read_int32()
+        self._obj["rightNeighbourId"] = self._raw.read_int32()
+        self._obj["shadowBonusOnEntities"]  = self._raw.read_int32()
 
-        if self.mapVersion >= 3:
-            self.backgroundRed = self._raw.read_char()
-            self.backgroundGreen = self._raw.read_char()
-            self.backgroundBlue = self._raw.read_char()
-            self.backgroundColor = (self.backgroundRed & 255) << 16 | (self.backgroundGreen & 255) << 8 | self.backgroundBlue & 255
+        if self._obj["mapVersion"] >= 3:
+            self._obj["backgroundRed"] = self._raw.read_char()
+            self._obj["backgroundGreen"] = self._raw.read_char()
+            self._obj["backgroundBlue"] = self._raw.read_char()
+            self._obj["backgroundColor"] = (self._obj["backgroundRed"] & 255) << 16 | (self._obj["backgroundGreen"] & 255) << 8 | self._obj["backgroundBlue"] & 255
 
-        if self.mapVersion >= 4:
-            self.zoomScale = self._raw.read_uint16()
-            self.zoomOffsetX = self._raw.read_int16()
-            self.zoomOffsetY = self._raw.read_int16()
+        if self._obj["mapVersion"] >= 4:
+            self._obj["zoomScale"] = self._raw.read_uint16()
+            self._obj["zoomOffsetX"] = self._raw.read_int16()
+            self._obj["zoomOffsetY"] = self._raw.read_int16()
 
-        self.useLowPassFilter = self._raw.read_bool()
-        self.useReverb = self._raw.read_bool()
+        self._obj["useLowPassFilter"] = self._raw.read_bool()
+        self._obj["useReverb"] = self._raw.read_bool()
 
-        if self.useReverb:
-            self.presetId = self._raw.read_int32()
+        if self._obj["useReverb"]:
+            self._obj["presetId"] = self._raw.read_int32()
         else:
-            self.presetId = -1
+            self._obj["presetId"] = -1
 
-        self.backgroundsCount = self._raw.read_char()
-
-        self.backgroundFixtures = []
-        for i in range(0, self.backgroundsCount):
+        self._obj["backgroundsCount"] = self._raw.read_char()
+        self._obj["backgroundFixtures"] = []
+        for i in range(0, self._obj["backgroundsCount"]):
             bg = Fixture(self)
             bg.read()
-            self.backgroundFixtures.append(bg)
+            self._obj["backgroundFixtures"].append(bg.json())
 
-        self.foregroundsCount = self._raw.read_char()
-
-        self.backgroundFixtures = []
-        for i in range(0, self.foregroundsCount):
+        self._obj["foregroundsCount"] = self._raw.read_char()
+        self._obj["foregroundsFixtures"] = []
+        for i in range(0, self._obj["foregroundsCount"]):
             fg = Fixture(self)
             fg.read()
-            self.foregroundsFixtures.append(fg)
+            self._obj["foregroundsFixtures"].append(fg.json())
 
-        self.cellsCount = 560 # MAP_CELLS_COUNT
-        self.unknown_1 = self._raw.read_int32()
-        self.groundCRC = self._raw.read_int32()
-        self.layersCount = self._raw.read_char()
+        self._obj["cellsCount"] = 560 # MAP_CELLS_COUNT
+        self._obj["unknown_1"] = self._raw.read_int32()
+        self._obj["groundCRC"] = self._raw.read_int32()
+        self._obj["layersCount"] = self._raw.read_char()
 
-        self.layers = []
-        for i in range(0, self.layersCount):
-            la = Layer(self, self.mapVersion)
+        self._obj["layers"] = []
+        for i in range(0, self._obj["layersCount"]):
+            la = Layer(self, self._obj["mapVersion"])
             la.read()
-            self.layers.append(la)
+            self._obj["layers"].append(la.json())
 
-        self.cells = []
-        for i in range(0, self.cellsCount):
-            cd = CellData(self, i, self.mapVersion)
+        self._obj["cells"] = []
+        for i in range(0, self._obj["cellsCount"]):
+            cd = CellData(self, i, self._obj["mapVersion"])
             cd.read()
-            self.cells.append(cd)
+            self._obj["cells"].append(cd.json())
 
     def write(self):
         pass
 
-    def debug(self):
-        print("header: " + str(self.header))
-        print("mapVersion: " + str(self.mapVersion))
-        print("mapId: " + str(self.mapId))
-        print("encrypted: " + str(self.encrypted))
-        print("encryptionVersion: " + str(self.encryptionVersion))
-        print("dataLen: " + str(self.dataLen))
-        print("relativeId: " + str(self.relativeId))
-        print("mapType: " + str(self.mapType))
-        print("subareaId: " + str(self.subareaId))
-        print("topNeighbourId: " + str(self.topNeighbourId))
-        print("bottomNeighbourId: " + str(self.bottomNeighbourId))
-        print("leftNeighbourId: " + str(self.leftNeighbourId))
-        print("rightNeighbourId: " + str(self.rightNeighbourId))
-        print("shadowBonusOnEntities: " + str(self.shadowBonusOnEntities))
-        print("backgroundRed: " + str(self.backgroundRed))
-        print("backgroundGreen: " + str(self.backgroundGreen))
-        print("backgroundBlue: " + str(self.backgroundBlue))
-        print("backgroundColor: " + str(self.backgroundColor))
-        print("zoomScale: " + str(self.zoomScale))
-        print("zoomOffsetX: " + str(self.zoomOffsetX))
-        print("zoomOffsetY: " + str(self.zoomOffsetY))
-        print("useLowPassFilter: " + str(self.useLowPassFilter))
-        print("useReverb: " + str(self.useReverb))
-        print("presetId: " + str(self.presetId))
-        print("backgroundsCount: " + str(self.backgroundsCount))
-
-        for i in range(0, self.backgroundsCount):
-            bg = self.backgroundFixtures[i]
-            bg.debug()
-
-        print("foregroundsCount: " + str(self.foregroundsCount))
-
-        for i in range(0, self.foregroundsCount):
-            fg = self.foregroundsFixtures[i]
-            fg.debug()
-
-        print("cellsCount: " + str(self.cellsCount))
-        print("unknown_1: " + str(self.unknown_1))
-        print("groundCRC: " + str(self.groundCRC))
-        print("layersCount: " + str(self.layersCount))
-
-        for i in range(0, self.layersCount):
-            la = self.layers[i]
-            la.debug()
-
-        for i in range(0, self.cellsCount):
-            cd = self.cells[i]
-            cd.debug()
-
-        print("topArrowCell: " + str(self.topArrowCell))
-        print("bottomArrowCell: " + str(self.bottomArrowCell))
-        print("leftArrowCell: " + str(self.leftArrowCell))
-        print("rightArrowCell: " + str(self.rightArrowCell))
+    def json(self):
+        return self._obj
 
 class Fixture:
     def __init__(self, map):
         self._map = map
         self._raw = map._raw
+        self._obj = {}
 
     def read(self):
-        self.fixtureId = self._raw.read_int32()
-        self.offsetX = self._raw.read_int16()
-        self.offsetY = self._raw.read_int16()
-        self.rotation = self._raw.read_int16()
-        self.xScale = self._raw.read_int16()
-        self.yScale = self._raw.read_int16()
-        self.redMultiplier = self._raw.read_char()
-        self.greenMultiplier = self._raw.read_char()
-        self.blueMultiplier =  self._raw.read_char()
-        self.hue = self.redMultiplier | self.greenMultiplier | self.blueMultiplier
-        self.alpha =  self._raw.read_uchar()
+        self._obj["fixtureId"] = self._raw.read_int32()
+        self._obj["offsetX "]= self._raw.read_int16()
+        self._obj["offsetY"] = self._raw.read_int16()
+        self._obj["rotation"] = self._raw.read_int16()
+        self._obj["xScale"] = self._raw.read_int16()
+        self._obj["yScale"] = self._raw.read_int16()
+        self._obj["redMultiplier"] = self._raw.read_char()
+        self._obj["greenMultiplier"] = self._raw.read_char()
+        self._obj["lueMultiplier"] =  self._raw.read_char()
+        self._obj["hue"] = self._obj["redMultiplier"] | self._obj["greenMultiplier"] | self._obj["blueMultiplier"]
+        self._obj["alpha"] =  self._raw.read_uchar()
 
     def write(self):
         pass
 
-    def debug(self):
-        print("\tfixtureId: " + str(self.fixtureId))
-        print("\toffsetX: " + str(self.offsetX))
-        print("\toffsetY: " + str(self.offsetY))
-        print("\trotation: " + str(self.rotation))
-        print("\txScale: " + str(self.xScale))
-        print("\tyScale: " + str(self.yScale))
-        print("\tredMultiplier: " + str(self.redMultiplier))
-        print("\tgreenMultiplier: " + str(self.greenMultiplier))
-        print("\tblueMultiplier: " + str(self.blueMultiplier))
-        print("\thue: " + str(self.hue))
-        print("\talpha: " + str(self.alpha))
+    def json(self):
+        return self._obj
 
 class Layer:
     def __init__(self, map, mapVersion):
         self._map = map
         self._raw = map._raw
+        self._obj = {}
         self.mapVersion = mapVersion
 
     def read(self):
-        self.layerId = self._raw.read_int32()
-        self.cellsCount = self._raw.read_int16()
+        self._obj["layerId"] = self._raw.read_int32()
+        self._obj["cellsCount"] = self._raw.read_int16()
 
-        self.cells = []
-        for i in range(0, self.cellsCount):
+        self._obj["cells"] = []
+        for i in range(0, self._obj["cellsCount"]):
             ce = Cell(self, self.mapVersion)
             ce.read()
-            self.cells.append(ce)
+            self._obj["cells"].append(ce.json())
 
     def write(self):
         pass
 
-    def debug(self):
-        print("\tlayerId: " + str(self.layerId))
-        print("\tcellsCount: " + str(self.cellsCount))
-
-        for i in range(0, self.cellsCount):
-            ce = self.cells[i]
-            ce.debug()
+    def json(self):
+        return self._obj
 
 class Cell:
     def __init__(self, layer, mapVersion):
         self._layer = layer
         self._raw = layer._raw
+        self._obj = {}
         self.mapVersion = mapVersion
 
     def read(self):
-        self.cellId = self._raw.read_int16()
-        self.elementsCount = self._raw.read_int16()
+        self._obj["cellId"] = self._raw.read_int16()
+        self._obj["elementsCount"] = self._raw.read_int16()
 
-        self.elements = []
-        for i in range(0, self.elementsCount):
+        self._obj["elements"] = []
+        for i in range(0, self._obj["elementsCount"]):
             el = BasicElement.GetElementFromType(self, self._raw.read_char(), self.mapVersion)
             el.read()
-            self.elements.append(el)
+            self._obj["elements"].append(el.json())
 
     def write(self):
         pass
 
-    def debug(self):
-        print("\t\tcellId: " + str(self.cellId))
-        print("\t\telementsCount: " + str(self.elementsCount))
-
-        for i in range(0, self.elementsCount):
-            el = self.elements[i]
-            el.debug()
+    def json(self):
+        return self._obj
 
 class CellData:
     def __init__(self, map, id, mapVersion):
         self._map = map
         self._raw = map._raw
+        self._obj = {}
         self.cellId = id
         self.mapVersion = mapVersion
 
     def read(self):
-        self.floor = self._raw.read_char() # * 10
-        self.losmov = self._raw.read_uchar()
-        self.speed = self._raw.read_char()
-        self.mapChangeData = self._raw.read_uchar()
+        self._obj["floor"] = self._raw.read_char() # * 10
+        self._obj["losmov"] = self._raw.read_uchar()
+        self._obj["speed"] = self._raw.read_char()
+        self._obj["mapChangeData"] = self._raw.read_uchar()
 
         if self.mapVersion > 5:
-            self.moveZone = self._raw.read_uchar()
+            self._obj["moveZone"] = self._raw.read_uchar()
         if self.mapVersion > 7:
             tmpBits = self._raw.read_char()
             self.arrow = 15 & tmpBits
@@ -318,16 +250,8 @@ class CellData:
     def write(self):
         pass
 
-    def debug(self):
-        print("\tfloor: " + str(self.floor))
-        print("\tlosmov: " + str(self.losmov))
-        print("\tspeed: " + str(self.speed))
-        print("\tmapChangeData: " + str(self.mapChangeData))
-
-        if self.mapVersion > 5:
-            print("\tmoveZone: " + str(self.moveZone))
-        if self.mapVersion > 7:
-            print("\tarrow: " + str(self.arrow))
+    def json(self):
+        return self._obj
 
     def useTopArrow(self):
         if (self.arrow & 1) == 0:
@@ -364,10 +288,13 @@ class GraphicalElement:
     def __init__(self, cell, mapVersion):
         self._cell = cell
         self._raw = cell._raw
+        self._obj = {}
         self.mapVersion = mapVersion
 
+        self._obj["elementName"] = "Graphical"
+
     def read(self):
-        self.elementId = self._raw.read_uint32()
+        self._obj["elementId"] = self._raw.read_uint32()
 
         # hue
         self._raw.read_byte()
@@ -380,46 +307,40 @@ class GraphicalElement:
         self._raw.read_byte()
 
         if self.mapVersion <= 4:
-            self.offsetX = self._raw.read_char()
-            self.offsetY = self._raw.read_char()
+            self._obj["offsetX"] = self._raw.read_char()
+            self._obj["offsetY"] = self._raw.read_char()
         else:
-            self.offsetX = self._raw.read_int16()
-            self.offsetY = self._raw.read_int16()
+            self._obj["offsetX"] = self._raw.read_int16()
+            self._obj["offsetY"] = self._raw.read_int16()
 
-        self.altitude = self._raw.read_char()
-        self.identifier = self._raw.read_uint32()
+        self._obj["altitude"] = self._raw.read_char()
+        self._obj["identifier"] = self._raw.read_uint32()
 
     def write(self):
         pass
 
-    def debug(self):
-        print("\t\t\telementId: " + str(self.elementId))
-        print("\t\t\toffsetX: " + str(self.offsetX))
-        print("\t\t\toffsetY: " + str(self.offsetY))
-        print("\t\t\taltitude: " + str(self.altitude))
-        print("\t\t\tidentifier: " + str(self.identifier))
+    def json(self):
+        return self._obj
 
 class SoundElement:
     def __init__(self, cell, mapVersion):
         self._cell = cell
         self._raw = cell._raw
+        self._obj = {}
         self.mapVersion = mapVersion
 
+        self._obj["elementName"] = "Sound"
+
     def read(self):
-        self.soundId = self._raw.read_int32()
-        self.baseVolume = self._raw.read_int16()
-        self.fullVolumeDistance = self._raw.read_int32()
-        self.nullVolumeDistance = self._raw.read_int32()
-        self.minDelayBetweenLoops = self._raw.read_int16()
-        self.maxDelayBetweenLoops = self._raw.read_int16()
+        self._obj["soundId"] = self._raw.read_int32()
+        self._obj["baseVolume"] = self._raw.read_int16()
+        self._obj["fullVolumeDistance"] = self._raw.read_int32()
+        self._obj["nullVolumeDistance"] = self._raw.read_int32()
+        self._obj["minDelayBetweenLoops"] = self._raw.read_int16()
+        self._obj["maxDelayBetweenLoops"] = self._raw.read_int16()
 
     def write(self):
         pass
 
-    def debug(self):
-        print("\t\t\tsoundId: " + str(self.soundId))
-        print("\t\t\tbaseVolume: " + str(self.baseVolume))
-        print("\t\t\tfullVolumeDistance: " + str(self.fullVolumeDistance))
-        print("\t\t\tnullVolumeDistance: " + str(self.nullVolumeDistance))
-        print("\t\t\tminDelayBetweenLoops: " + str(self.minDelayBetweenLoops))
-        print("\t\t\tmaxDelayBetweenLoops: " + str(self.maxDelayBetweenLoops))
+    def json(self):
+        return self._obj
