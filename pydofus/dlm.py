@@ -101,12 +101,15 @@ class DLMReader:
                 print("shadowBonusOnEntities: " + str(shadowBonusOnEntities))
 
                 if mapVersion >= 3:
-                    unknown_1 = raw.read_bytes(3)
+                    backgroundRed = raw.read_byte()[0]
+                    backgroundGreen = raw.read_byte()[0]
+                    backgroundBlue = raw.read_byte()[0]
+                    backgroundColor = (backgroundRed & 255) << 16 | (backgroundGreen & 255) << 8 | backgroundBlue & 255
 
                 if mapVersion >= 4:
-                    unknown_2 = raw.read_uint16()
-                    unknown_3 = raw.read_int16()
-                    unknown_4 = raw.read_int16()
+                    zoomScale = raw.read_uint16()
+                    zoomOffsetX = raw.read_int16()
+                    zoomOffsetY = raw.read_int16()
 
                 useLowPassFilter = raw.read_bool()
                 useReverb = raw.read_bool()
@@ -116,19 +119,31 @@ class DLMReader:
                 else:
                     presetId = -1
 
-                bgCount = raw.read_byte()[0]
-                fgCount = raw.read_byte()[0]
-                unknown_5 = raw.read_int32()
+                backgroundsCount = raw.read_byte()[0]
+                # TODO: check code
+                foregroundsCount = raw.read_byte()[0]
+                # TODO: check code
+                unknown_1 = raw.read_int32()
                 groundCRC = raw.read_int32()
-                layerCount = raw.read_byte()[0]
+                layersCount = raw.read_byte()[0]
 
+                print("backgroundRed: " + str(backgroundRed))
+                print("backgroundGreen: " + str(backgroundGreen))
+                print("backgroundBlue: " + str(backgroundBlue))
+                print("backgroundColor: " + str(backgroundColor))
+                print("zoomScale: " + str(zoomScale))
+                print("zoomOffsetX: " + str(zoomOffsetX))
+                print("zoomOffsetY: " + str(zoomOffsetY))
                 print("useLowPassFilter: " + str(useLowPassFilter))
                 print("useReverb: " + str(useReverb))
                 print("presetId: " + str(presetId))
-                print("bgCount: " + str(bgCount))
-                print("fgCount: " + str(fgCount))
+                print("backgroundsCount: " + str(backgroundsCount))
+                print("foregroundsCount: " + str(foregroundsCount))
                 print("groundCRC: " + str(groundCRC))
-                print("layerCount: " + str(layerCount))
+                print("layersCount: " + str(layersCount))
+
+                # TODO: create Layer class
+                # TODO: create cellData class
 
         self._loaded = True
 
