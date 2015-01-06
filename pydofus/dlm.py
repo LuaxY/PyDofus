@@ -53,14 +53,19 @@ class Map:
         self._raw = raw
         self._key = key
 
+        self.topArrowCell = []
+        self.bottomArrowCell = []
+        self.leftArrowCell = []
+        self.rightArrowCell = []
+
     def read(self):
-        self.header = self._raw.read_byte()[0]
-        self.mapVersion = self._raw.read_byte()[0]
+        self.header = self._raw.read_char()
+        self.mapVersion = self._raw.read_char()
         self.mapId = self._raw.read_uint32()
 
         if self.mapVersion >= 7:
             self.encrypted = self._raw.read_bool()
-            self.encryptionVersion = self._raw.read_byte()[0]
+            self.encryptionVersion = self._raw.read_char()
             self.dataLen = self._raw.read_int32()
 
             if self.encrypted:
@@ -73,7 +78,7 @@ class Map:
                 self._raw = _BinaryStream(tmp, True)
 
                 self.relativeId = self._raw.read_uint32()
-                self.mapType = self._raw.read_byte()[0]
+                self.mapType = self._raw.read_char()
                 self.subareaId = self._raw.read_int32()
                 self.topNeighbourId = self._raw.read_int32()
                 self.bottomNeighbourId = self._raw.read_int32()
@@ -82,9 +87,9 @@ class Map:
                 self.shadowBonusOnEntities  = self._raw.read_int32()
 
                 if self.mapVersion >= 3:
-                    self.backgroundRed = self._raw.read_byte()[0]
-                    self.backgroundGreen = self._raw.read_byte()[0]
-                    self.backgroundBlue = self._raw.read_byte()[0]
+                    self.backgroundRed = self._raw.read_char()
+                    self.backgroundGreen = self._raw.read_char()
+                    self.backgroundBlue = self._raw.read_char()
                     self.backgroundColor = (self.backgroundRed & 255) << 16 | (self.backgroundGreen & 255) << 8 | self.backgroundBlue & 255
 
                 if self.mapVersion >= 4:
@@ -100,14 +105,14 @@ class Map:
                 else:
                     self.presetId = -1
 
-                self.backgroundsCount = self._raw.read_byte()[0]
+                self.backgroundsCount = self._raw.read_char()
                 # TODO: Fixture
-                self.foregroundsCount = self._raw.read_byte()[0]
+                self.foregroundsCount = self._raw.read_char()
                 # TODO: Fixture
-                self.cellsCount = 560
+                self.cellsCount = 560 # MAP_CELLS_COUNT
                 self.unknown_1 = self._raw.read_int32()
                 self.groundCRC = self._raw.read_int32()
-                self.layersCount = self._raw.read_byte()[0]
+                self.layersCount = self._raw.read_char()
 
                 self.layers = []
                 for i in range(0, self.layersCount):
@@ -115,7 +120,11 @@ class Map:
                     la.read()
                     self.layers.append(la)
 
-                # TODO: CellData
+                self.cells = []
+                for i in range(0, self.cellsCount):
+                    cd = CellData(self, i, self.mapVersion)
+                    cd.read()
+                    self.cells.append(cd)
 
     def write(self):
         pass
@@ -155,6 +164,15 @@ class Map:
         for i in range(0, self.layersCount):
             la = self.layers[i]
             la.debug()
+
+        for i in range(0, self.cellsCount):
+            cd = self.cells[i]
+            cd.debug()
+
+        print("topArrowCell: " + str(self.topArrowCell))
+        print("bottomArrowCell: " + str(self.bottomArrowCell))
+        print("leftArrowCell: " + str(self.leftArrowCell))
+        print("rightArrowCell: " + str(self.rightArrowCell))
 
 class Fixture:
     def __init__(self, map):
@@ -209,7 +227,7 @@ class Cell:
 
         self.elements = []
         for i in range(0, self.elementsCount):
-            el = BasicElement.GetElementFromType(self, self._raw.read_byte()[0], self.mapVersion)
+            el = BasicElement.GetElementFromType(self, self._raw.read_char(), self.mapVersion)
             el.read()
             self.elements.append(el)
 
@@ -225,12 +243,35 @@ class Cell:
             el.debug()
 
 class CellData:
-    def __init__(self, map):
+    def __init__(self, map, id, mapVersion):
         self._map = map
         self._raw = map._raw
+        self.cellId = id
+        self.mapVersion = mapVersion
 
     def read(self):
-        pass
+        self.floor = self._raw.read_char() # * 10
+        self.losmov = self._raw.read_uchar()
+        self.speed = self._raw.read_char()
+        self.mapChangeData = self._raw.read_uchar()
+
+        if self.mapVersion > 5:
+            self.moveZone = self._raw.read_uchar()
+        if self.mapVersion > 7:
+            tmpBits = self._raw.read_char()
+            self.arrow = 15 & tmpBits
+
+            if self.useTopArrow():
+                self._map.topArrowCell.append(self.cellId)
+
+            if self.useBottomArrow():
+                self._map.bottomArrowCell.append(self.cellId)
+
+            if self.useLeftArrow():
+                self._map.leftArrowCell.append(self.cellId)
+
+            if self.useRightArrow():
+                self._map.rightArrowCell.append(self.cellId)
 
     def write(self):
         pass
@@ -238,11 +279,35 @@ class CellData:
     def debug(self):
         pass
 
+    def useTopArrow(self):
+        if (self.arrow & 1) == 0:
+            return False
+        else:
+            return True
+
+    def useBottomArrow(self):
+        if (self.arrow & 2) == 0:
+            return False
+        else:
+            return True
+
+    def useLeftArrow(self):
+        if (self.arrow & 4) == 0:
+            return False
+        else:
+            return True
+
+    def useRightArrow(self):
+        if (self.arrow & 8) == 0:
+            return False
+        else:
+            return True
+
 class BasicElement:
     def GetElementFromType(cell, type, mapVersion):
-        if type == 2:
+        if type == 2: # GRAPHICAL
             return GraphicalElement(cell, mapVersion)
-        elif type == 33:
+        elif type == 33: # SOUND
             return SoundElement(cell, mapVersion)
 
 class GraphicalElement:
@@ -265,13 +330,13 @@ class GraphicalElement:
         self._raw.read_byte()
 
         if self.mapVersion <= 4:
-            self.pixelOffsetX = self._raw.read_byte()[0]
-            self.pixelOffsetY = self._raw.read_byte()[0]
+            self.pixelOffsetX = self._raw.read_char()
+            self.pixelOffsetY = self._raw.read_char()
         else:
             self.pixelOffsetX = self._raw.read_int16()
             self.pixelOffsetY = self._raw.read_int16()
 
-        self.altitude = self._raw.read_byte()[0]
+        self.altitude = self._raw.read_char()
         self.identifier = self._raw.read_uint32()
 
     def write(self):
