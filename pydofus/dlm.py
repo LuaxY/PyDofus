@@ -60,8 +60,6 @@ class DLMReader:
         print("mapVersion: " + str(mapVersion))
         print("mapId: " + str(mapId))
 
-        #print(int.from_bytes(mapVersion, byteorder="big"))
-
         if mapVersion >= 7:
             encrypted = DLM_file_binary.read_bool()
             encryptionVersion = DLM_file_binary.read_byte()
@@ -75,9 +73,7 @@ class DLMReader:
                 encryptedData = DLM_file_binary.read_bytes(dataLen)
                 decryptedData = bytearray()
                 for i in range(0, dataLen):
-                    a = encryptedData[i]
-                    b = ord(self._key[i % len(self._key)][0])
-                    decryptedData.append(a ^ b)
+                    decryptedData.append(encryptedData[i] ^ ord(self._key[i % len(self._key)][0]))
 
                 tmp = io.BytesIO(decryptedData)
                 raw = _BinaryStream(tmp, True)
