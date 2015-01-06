@@ -77,66 +77,66 @@ class Map:
                 tmp = io.BytesIO(decryptedData)
                 self._raw = _BinaryStream(tmp, True)
 
-            self.relativeId = self._raw.read_uint32()
-            self.mapType = self._raw.read_char()
-            self.subareaId = self._raw.read_int32()
-            self.topNeighbourId = self._raw.read_int32()
-            self.bottomNeighbourId = self._raw.read_int32()
-            self.leftNeighbourId = self._raw.read_int32()
-            self.rightNeighbourId = self._raw.read_int32()
-            self.shadowBonusOnEntities  = self._raw.read_int32()
+        self.relativeId = self._raw.read_uint32()
+        self.mapType = self._raw.read_char()
+        self.subareaId = self._raw.read_int32()
+        self.topNeighbourId = self._raw.read_int32()
+        self.bottomNeighbourId = self._raw.read_int32()
+        self.leftNeighbourId = self._raw.read_int32()
+        self.rightNeighbourId = self._raw.read_int32()
+        self.shadowBonusOnEntities  = self._raw.read_int32()
 
-            if self.mapVersion >= 3:
-                self.backgroundRed = self._raw.read_char()
-                self.backgroundGreen = self._raw.read_char()
-                self.backgroundBlue = self._raw.read_char()
-                self.backgroundColor = (self.backgroundRed & 255) << 16 | (self.backgroundGreen & 255) << 8 | self.backgroundBlue & 255
+        if self.mapVersion >= 3:
+            self.backgroundRed = self._raw.read_char()
+            self.backgroundGreen = self._raw.read_char()
+            self.backgroundBlue = self._raw.read_char()
+            self.backgroundColor = (self.backgroundRed & 255) << 16 | (self.backgroundGreen & 255) << 8 | self.backgroundBlue & 255
 
-            if self.mapVersion >= 4:
-                self.zoomScale = self._raw.read_uint16()
-                self.zoomOffsetX = self._raw.read_int16()
-                self.zoomOffsetY = self._raw.read_int16()
+        if self.mapVersion >= 4:
+            self.zoomScale = self._raw.read_uint16()
+            self.zoomOffsetX = self._raw.read_int16()
+            self.zoomOffsetY = self._raw.read_int16()
 
-            self.useLowPassFilter = self._raw.read_bool()
-            self.useReverb = self._raw.read_bool()
+        self.useLowPassFilter = self._raw.read_bool()
+        self.useReverb = self._raw.read_bool()
 
-            if self.useReverb:
-                self.presetId = self._raw.read_int32()
-            else:
-                self.presetId = -1
+        if self.useReverb:
+            self.presetId = self._raw.read_int32()
+        else:
+            self.presetId = -1
 
-            self.backgroundsCount = self._raw.read_char()
+        self.backgroundsCount = self._raw.read_char()
 
-            self.backgroundFixtures = []
-            for i in range(0, self.backgroundsCount):
-                bg = Fixture(self)
-                bg.read()
-                self.backgroundFixtures.append(bg)
+        self.backgroundFixtures = []
+        for i in range(0, self.backgroundsCount):
+            bg = Fixture(self)
+            bg.read()
+            self.backgroundFixtures.append(bg)
 
-            self.foregroundsCount = self._raw.read_char()
+        self.foregroundsCount = self._raw.read_char()
 
-            self.backgroundFixtures = []
-            for i in range(0, self.foregroundsCount):
-                fg = Fixture(self)
-                fg.read()
-                self.foregroundsFixtures.append(fg)
+        self.backgroundFixtures = []
+        for i in range(0, self.foregroundsCount):
+            fg = Fixture(self)
+            fg.read()
+            self.foregroundsFixtures.append(fg)
 
-            self.cellsCount = 560 # MAP_CELLS_COUNT
-            self.unknown_1 = self._raw.read_int32()
-            self.groundCRC = self._raw.read_int32()
-            self.layersCount = self._raw.read_char()
+        self.cellsCount = 560 # MAP_CELLS_COUNT
+        self.unknown_1 = self._raw.read_int32()
+        self.groundCRC = self._raw.read_int32()
+        self.layersCount = self._raw.read_char()
 
-            self.layers = []
-            for i in range(0, self.layersCount):
-                la = Layer(self, self.mapVersion)
-                la.read()
-                self.layers.append(la)
+        self.layers = []
+        for i in range(0, self.layersCount):
+            la = Layer(self, self.mapVersion)
+            la.read()
+            self.layers.append(la)
 
-            self.cells = []
-            for i in range(0, self.cellsCount):
-                cd = CellData(self, i, self.mapVersion)
-                cd.read()
-                self.cells.append(cd)
+        self.cells = []
+        for i in range(0, self.cellsCount):
+            cd = CellData(self, i, self.mapVersion)
+            cd.read()
+            self.cells.append(cd)
 
     def write(self):
         pass
