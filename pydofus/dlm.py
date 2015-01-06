@@ -1,12 +1,11 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import zlib, tempfile, io
 from ._binarystream import _BinaryStream
 from collections import OrderedDict
-import zlib, tempfile, io
 
 # Exceptions
-
 
 class InvalidDLMFile(Exception):
     def __init__(self, message):
@@ -15,11 +14,13 @@ class InvalidDLMFile(Exception):
 
 # Class itself
 
-
 class DLMReader:
     """Read DLM files"""
-    def __init__(self, stream, key, autoload=True):
+    def __init__(self, stream, key=None, autoload=True):
         """Init the class with the informations about files in the DLM"""
+
+        if key == None:
+            raise InvalidDLMFile("Map decryption key is empty.")
 
         # Uncompress zlib map
         dlm_uncompressed = tempfile.TemporaryFile()
