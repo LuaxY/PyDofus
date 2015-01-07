@@ -9,45 +9,27 @@ class InvalidDLMFile(Exception):
         super(InvalidDLMFile, self).__init__(message)
         self.message = message
 
-class DLMReader:
-    """Read DLM files"""
+class DLM:
     def __init__(self, stream, key=None, autoload=True):
-        """Init the class with the informations about files in the DLM"""
-
         if key == None:
             raise InvalidDLMFile("Map decryption key is empty.")
 
-        # Uncompress zlib map
-        dlm_uncompressed = tempfile.TemporaryFile()
-        dlm_uncompressed.write(zlib.decompress(stream.read()))
-        dlm_uncompressed.seek(0)
-
-        # Attributes
-        self._stream = dlm_uncompressed
+        self._stream = stream
         self._key = key
 
-        self._loaded = False
-
-        if autoload:
-            self.load()
-
-        dlm_uncompressed.close()
-
-    def load(self):
-        """Load the class with the actual DML files in it"""
-
-        if self._loaded:
-            raise Exception("DML instance is already populated.")
-
+    def read(self):
+        dlm_uncompressed = tempfile.TemporaryFile()
+        dlm_uncompressed.write(zlib.decompress(self._stream.read()))
+        dlm_uncompressed.seek(0)
+        self._stream = dlm_uncompressed
         DLM_file_binary = _BinaryStream(self._stream, True)
-
         self._map = Map(DLM_file_binary, self._key)
         self._map.read()
+        dlm_uncompressed.close()
+        return self._map.getObj()
 
-        self._loaded = True
-
-    def json(self):
-        return self._map.json()
+    def write(self):
+        pass
 
 class Map:
     def __init__(self, raw, key):
@@ -74,7 +56,7 @@ class Map:
                 self.encryptedData = self._raw.read_bytes(self.dataLen)
                 decryptedData = bytearray()
                 for i in range(0, self.dataLen):
-                    decryptedData.append(ord(self.encryptedData[i]) ^ ord(self._key[i % len(self._key)][0]))
+                    decryptedData.append(self.encryptedData[i] ^ ord(self._key[i % len(self._key)][0]))
 
                 tmp = io.BytesIO(decryptedData)
                 self._raw = _BinaryStream(tmp, True)
@@ -112,14 +94,14 @@ class Map:
         for i in range(0, self._obj["backgroundsCount"]):
             bg = Fixture(self)
             bg.read()
-            self._obj["backgroundFixtures"].append(bg.json())
+            self._obj["backgroundFixtures"].append(bg.getObj())
 
         self._obj["foregroundsCount"] = self._raw.read_char()
         self._obj["foregroundsFixtures"] = []
         for i in range(0, self._obj["foregroundsCount"]):
             fg = Fixture(self)
             fg.read()
-            self._obj["foregroundsFixtures"].append(fg.json())
+            self._obj["foregroundsFixtures"].append(fg.getObj())
 
         self._obj["cellsCount"] = 560 # MAP_CELLS_COUNT
         self._obj["unknown_1"] = self._raw.read_int32()
@@ -130,19 +112,46 @@ class Map:
         for i in range(0, self._obj["layersCount"]):
             la = Layer(self, self._obj["mapVersion"])
             la.read()
-            self._obj["layers"].append(la.json())
+            self._obj["layers"].append(la.getObj())
 
         self._obj["cells"] = []
         for i in range(0, self._obj["cellsCount"]):
             cd = CellData(self, i, self._obj["mapVersion"])
             cd.read()
-            self._obj["cells"].append(cd.json())
+            self._obj["cells"].append(cd.getObj())
 
     def write(self):
-        pass
+        self._raw.write_char(self._obj["header"])
+        self._raw.write_char(self._obj["mapVersion"])
+        self._raw.write_int32(self._obj["mapId"])
 
-    def json(self):
+        if self._obj["mapVersion"] >= 7:
+            self._raw.write_bool(self._obj["encrypted"])
+            self._raw.write_char(self._obj["encryptionVersion"])
+            self._raw.write_int32(0) # TODO: write dataLen
+            # TODO: encrypt data
+
+    def getObj(self):
         return self._obj
+
+    def setObj(self, obj):
+        self._obj = obj
+
+        for i in range(0, self._obj["backgroundsCount"]):
+            bg = Fixture(self)
+            self._obj["backgroundFixtures"][i] = ce.setObj(self._obj["backgroundFixtures"][i])
+
+        for i in range(0, self._obj["foregroundsCount"]):
+            fg = Fixture(self)
+            self._obj["foregroundsFixtures"][i] = fg.setObj(self._obj["foregroundsFixtures"][i])
+
+        for i in range(0, self._obj["layersCount"]):
+            la = Layer(self, self._obj["mapVersion"])
+            self._obj["layers"][i] = la.setObj(self._obj["cells"][i])
+
+        for i in range(0, self._obj["cellsCount"]):
+            ce = CellData(self, i, self._obj["mapVersion"])
+            self._obj["cells"][i] = ce.setObj(self._obj["cells"][i])
 
 class Fixture:
     def __init__(self, map):
@@ -159,15 +168,27 @@ class Fixture:
         self._obj["yScale"] = self._raw.read_int16()
         self._obj["redMultiplier"] = self._raw.read_char()
         self._obj["greenMultiplier"] = self._raw.read_char()
-        self._obj["lueMultiplier"] =  self._raw.read_char()
+        self._obj["blueMultiplier"] =  self._raw.read_char()
         self._obj["hue"] = self._obj["redMultiplier"] | self._obj["greenMultiplier"] | self._obj["blueMultiplier"]
         self._obj["alpha"] =  self._raw.read_uchar()
 
     def write(self):
-        pass
+        self._raw.write_int32(self._obj["fixtureId"])
+        self._raw.write_int16(self._obj["offsetX"])
+        self._raw.write_int16(self._obj["offsetY"])
+        self._raw.write_int16(self._obj["rotation"])
+        self._raw.write_int16(self._obj["xScale"])
+        self._raw.write_int16(self._obj["yScale"])
+        self._raw.write_char(self._obj["redMultiplier"])
+        self._raw.write_char(self._obj["greenMultiplier"])
+        self._raw.write_char(self._obj["blueMultiplier"])
+        self._raw.write_uchar(self._obj["alpha"])
 
-    def json(self):
+    def getObj(self):
         return self._obj
+
+    def setObj(self, obj):
+        self._obj = obj
 
 class Layer:
     def __init__(self, map, mapVersion):
@@ -184,13 +205,24 @@ class Layer:
         for i in range(0, self._obj["cellsCount"]):
             ce = Cell(self, self.mapVersion)
             ce.read()
-            self._obj["cells"].append(ce.json())
+            self._obj["cells"].append(ce.getObj())
 
     def write(self):
-        pass
+        self._raw.write_int32(self._obj["layerId"])
+        self._raw.write_int16(self._obj["cellsCount"])
 
-    def json(self):
+        for i in range(0, self._obj["cellsCount"]):
+            self._obj["cells"][i].write()
+
+    def getObj(self):
         return self._obj
+
+    def setObj(self, obj):
+        self._obj = obj
+
+        for i in range(0, self._obj["cellsCount"]):
+            ce = Cell(self, self.mapVersion)
+            self._obj["cells"][i] = ce.setObj(self._obj["cells"][i])
 
 class Cell:
     def __init__(self, layer, mapVersion):
@@ -207,13 +239,28 @@ class Cell:
         for i in range(0, self._obj["elementsCount"]):
             el = BasicElement().GetElementFromType(self, self._raw.read_char(), self.mapVersion)
             el.read()
-            self._obj["elements"].append(el.json())
+            self._obj["elements"].append(el.getObj())
 
     def write(self):
-        pass
+        self._raw.write_int16(self._obj["cellId"])
+        self._raw.write_int16(self._obj["elementsCount"])
 
-    def json(self):
+        for i in range(0, self._obj["elementsCount"]):
+            self._obj["elements"][i].write()
+
+    def getObj(self):
         return self._obj
+
+    def setObj(self, obj):
+        self._obj = obj
+
+        for i in range(0, self._obj["elementsCount"]):
+            if self._obj["elements"][i]["elementName"] == "Graphical":
+                el = GraphicalElement(self, self.mapVersion)
+            elif self._obj["elements"][i]["elementName"] == "Sound":
+                el = SoundElement(self, self.mapVersion)
+
+            self._obj["elements"][i] = el.setObj(self._obj["elements"][i])
 
 class CellData:
     def __init__(self, map, id, mapVersion):
@@ -232,8 +279,8 @@ class CellData:
         if self.mapVersion > 5:
             self._obj["moveZone"] = self._raw.read_uchar()
         if self.mapVersion > 7:
-            tmpBits = self._raw.read_char()
-            self.arrow = 15 & tmpBits
+            self._obj["tmpBits"] = self._raw.read_char()
+            self.arrow = 15 & self._obj["tmpBits"]
 
             if self.useTopArrow():
                 self._map.topArrowCell.append(self.cellId)
@@ -248,10 +295,21 @@ class CellData:
                 self._map.rightArrowCell.append(self.cellId)
 
     def write(self):
-        pass
+        self._raw.write_char(self._obj["floor"])
+        self._raw.write_uchar(self._obj["losmov"])
+        self._raw.write_char(self._obj["speed"])
+        self._raw.write_uchar(self._obj["mapChangeData"])
 
-    def json(self):
+        if self.mapVersion > 5:
+            self._raw.write_uchar(self._obj["moveZone"])
+        if self.mapVersion > 7:
+            self._raw.write_char(self._obj["tmpBits"])
+
+    def getObj(self):
         return self._obj
+
+    def setObj(self, obj):
+        self._obj = obj
 
     def useTopArrow(self):
         if (self.arrow & 1) == 0:
@@ -337,8 +395,11 @@ class GraphicalElement:
         self._raw.write_char(self._obj["altitude"])
         self._raw.write_uint32(self._obj["identifier"])
 
-    def json(self):
+    def getObj(self):
         return self._obj
+
+    def setObj(self, obj):
+        self._obj = obj
 
 class SoundElement:
     def __init__(self, cell, mapVersion):
@@ -365,5 +426,8 @@ class SoundElement:
         self._raw.write_int16(self._obj["minDelayBetweenLoops"])
         self._raw.write_int16(self._obj["maxDelayBetweenLoops"])
 
-    def json(self):
+    def getObj(self):
         return self._obj
+
+    def setObj(self, obj):
+        self._obj = obj
