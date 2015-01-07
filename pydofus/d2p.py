@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from ._binarystream import _BinaryStream
-
 from collections import OrderedDict
 
 # Exceptions

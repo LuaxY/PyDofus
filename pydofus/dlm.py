@@ -3,6 +3,7 @@
 
 import zlib, tempfile, io
 from ._binarystream import _BinaryStream
+from collections import OrderedDict
 
 class InvalidDLMFile(Exception):
     def __init__(self, message):
@@ -35,7 +36,7 @@ class Map:
     def __init__(self, raw, key):
         self._raw = raw
         self._key = key
-        self._obj = {}
+        self._obj = OrderedDict()
 
         self.topArrowCell = []
         self.bottomArrowCell = []
@@ -157,7 +158,7 @@ class Fixture:
     def __init__(self, map):
         self._map = map
         self._raw = map._raw
-        self._obj = {}
+        self._obj = OrderedDict()
 
     def read(self):
         self._obj["fixtureId"] = self._raw.read_int32()
@@ -194,7 +195,7 @@ class Layer:
     def __init__(self, map, mapVersion):
         self._map = map
         self._raw = map._raw
-        self._obj = {}
+        self._obj = OrderedDict()
         self.mapVersion = mapVersion
 
     def read(self):
@@ -228,7 +229,7 @@ class Cell:
     def __init__(self, layer, mapVersion):
         self._layer = layer
         self._raw = layer._raw
-        self._obj = {}
+        self._obj = OrderedDict()
         self.mapVersion = mapVersion
 
     def read(self):
@@ -266,7 +267,7 @@ class CellData:
     def __init__(self, map, id, mapVersion):
         self._map = map
         self._raw = map._raw
-        self._obj = {}
+        self._obj = OrderedDict()
         self.cellId = id
         self.mapVersion = mapVersion
 
@@ -346,7 +347,7 @@ class GraphicalElement:
     def __init__(self, cell, mapVersion):
         self._cell = cell
         self._raw = cell._raw
-        self._obj = {}
+        self._obj = OrderedDict()
         self.mapVersion = mapVersion
 
         self._obj["elementName"] = "Graphical"
@@ -405,7 +406,7 @@ class SoundElement:
     def __init__(self, cell, mapVersion):
         self._cell = cell
         self._raw = cell._raw
-        self._obj = {}
+        self._obj = OrderedDict()
         self.mapVersion = mapVersion
 
         self._obj["elementName"] = "Sound"
