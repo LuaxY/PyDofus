@@ -317,7 +317,25 @@ class GraphicalElement:
         self._obj["identifier"] = self._raw.read_uint32()
 
     def write(self):
-        pass
+        self._raw.write_uint32(self._obj["elementId"])
+
+        self._raw.write_byte(b'\x00')
+        self._raw.write_byte(b'\x00')
+        self._raw.write_byte(b'\x00')
+
+        self._raw.write_byte(b'\x00')
+        self._raw.write_byte(b'\x00')
+        self._raw.write_byte(b'\x00')
+
+        if self.mapVersion <= 4:
+            self._raw.write_char(self._obj["offsetX"])
+            self._raw.write_char(self._obj["offsetY"])
+        else:
+            self._raw.write_int16(self._obj["offsetX"])
+            self._raw.write_int16(self._obj["offsetY"])
+
+        self._raw.write_char(self._obj["altitude"])
+        self._raw.write_uint32(self._obj["identifier"])
 
     def json(self):
         return self._obj
@@ -340,7 +358,12 @@ class SoundElement:
         self._obj["maxDelayBetweenLoops"] = self._raw.read_int16()
 
     def write(self):
-        pass
+        self._raw.write_int32(self._obj["soundId"])
+        self._raw.write_int16(self._obj["baseVolume"])
+        self._raw.write_int32(self._obj["fullVolumeDistance"])
+        self._raw.write_int32(self._obj["nullVolumeDistance"])
+        self._raw.write_int16(self._obj["minDelayBetweenLoops"])
+        self._raw.write_int16(self._obj["maxDelayBetweenLoops"])
 
     def json(self):
         return self._obj
