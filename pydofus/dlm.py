@@ -241,7 +241,7 @@ class Fixture:
 
     def read(self):
         self._obj["fixtureId"] = self.raw().read_int32()
-        self._obj["offsetX "]= self.raw().read_int16()
+        self._obj["offsetX"]= self.raw().read_int16()
         self._obj["offsetY"] = self.raw().read_int16()
         self._obj["rotation"] = self.raw().read_int16()
         self._obj["xScale"] = self.raw().read_int16()
@@ -262,7 +262,7 @@ class Fixture:
         self.raw().write_char(self._obj["redMultiplier"])
         self.raw().write_char(self._obj["greenMultiplier"])
         self.raw().write_char(self._obj["blueMultiplier"])
-        self._map._raw.write_uchar(self._obj["alpha"])
+        self.raw().write_uchar(self._obj["alpha"])
 
     def getObj(self):
         return self._obj
