@@ -74,7 +74,7 @@ class Map:
                 self.encryptedData = self._raw.read_bytes(self.dataLen)
                 decryptedData = bytearray()
                 for i in range(0, self.dataLen):
-                    decryptedData.append(self.encryptedData[i] ^ ord(self._key[i % len(self._key)][0]))
+                    decryptedData.append(ord(self.encryptedData[i]) ^ ord(self._key[i % len(self._key)][0]))
 
                 tmp = io.BytesIO(decryptedData)
                 self._raw = _BinaryStream(tmp, True)
@@ -205,7 +205,7 @@ class Cell:
 
         self._obj["elements"] = []
         for i in range(0, self._obj["elementsCount"]):
-            el = BasicElement.GetElementFromType(self, self._raw.read_char(), self.mapVersion)
+            el = BasicElement().GetElementFromType(self, self._raw.read_char(), self.mapVersion)
             el.read()
             self._obj["elements"].append(el.json())
 
@@ -278,7 +278,7 @@ class CellData:
             return True
 
 class BasicElement:
-    def GetElementFromType(cell, type, mapVersion):
+    def GetElementFromType(self, cell, type, mapVersion):
         if type == 2: # GRAPHICAL
             return GraphicalElement(cell, mapVersion)
         elif type == 33: # SOUND
