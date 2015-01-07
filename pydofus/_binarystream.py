@@ -14,6 +14,12 @@ class _BinaryStream:
     def write_bytes(self, value):
         self._base_stream.write(value)
 
+    def write_bool(self, value):
+        if value:
+            self.write_char(1)
+        else:
+            self.write_char(0)
+
     def write_char(self, value):
         self._pack('b', value)
 
