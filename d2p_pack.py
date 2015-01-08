@@ -18,7 +18,7 @@ except:
     swl_mode = None
 
 if file is None or swl_mode is None:
-    print("usage: python compress.py {file.d2p} {swl ture|false}")
+    print("usage: python d2p_pack.py {file.d2p} {swl ture|false}")
 else:
     print("D2P Packer for " + file)
 
