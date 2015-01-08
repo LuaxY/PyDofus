@@ -18,11 +18,10 @@ class D2I:
     def read(self):
         raw = _BinaryStream(self._stream, True)
 
-        self._obj["texts"] = OrderedDict()
-        #self._obj["namedTexts"] = OrderedDict()
-
         indexs = OrderedDict()
         unDiacriticalIndex = OrderedDict()
+
+        self._obj["texts"] = OrderedDict()
         self._obj["nameText"] = OrderedDict()
         self._obj["idText"] = OrderedDict()
 
@@ -95,9 +94,7 @@ class D2I:
             raw.write_bool(data["diacriticalText"])
             raw.write_int32(data["pointer"])
             if data["diacriticalText"]:
-                #indexesLength += 4
                 raw.write_int32(data["unDiacriticalIndex"])
-            #indexesLength += 9
 
         indexesLength = (self._stream.tell() - indexesPosition)
 
