@@ -11,7 +11,7 @@ class InvalidDLMFile(Exception):
         self.message = message
 
 class DLM:
-    def __init__(self, stream, key=None, autoload=True):
+    def __init__(self, stream, key=None):
         if key == None:
             raise InvalidDLMFile("Map decryption key is empty.")
 
