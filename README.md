@@ -3,15 +3,13 @@ PyDofus Tools
 
 Python 3 scripts to pack/unpack Dofus files
 
-- **d2i**: done
-- **d2p**: done
-- **dlm**: done
-- **dx**: done
-- **swl**: done
-
-
-- **d2o**: todo
-- **ele**: todo
+- [x] **d2i**
+- [x] **d2p**
+- [ ] **d2o**
+- [x] **dlm**
+- [x] **dx**
+- [ ] **ele**
+- [x] **swl**
 
 Usage
 -----
@@ -82,5 +80,5 @@ $ python swl_pack.py file.swf
 Authors
 -------
 
-**Marvin Roger** ([marvinroger](https://github.com/marvinroger)) : based on his work
+**Marvin Roger** ([marvinroger](https://github.com/marvinroger)) : based on his work  
 **Yann Guineau** ([LuaxY](https://github.com/LuaxY)) : automated scripts for pack/unpack dofus files
