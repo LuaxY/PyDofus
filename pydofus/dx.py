@@ -15,9 +15,9 @@ class DX:
         self._stream = stream
         self._obj = OrderedDict()
 
-    def read(self, out):
+    def read(self, out_stream):
         raw = _BinaryStream(self._stream, True)
-        out_stream = _BinaryStream(out, True)
+        _out = _BinaryStream(out_stream, True)
 
         file = raw.read_char()
         version = raw.read_char()
@@ -29,7 +29,21 @@ class DX:
         swfLenght = self._stream.tell() - swfDataPosition
 
         for i in range(0, swfLenght):
-            out_stream.write_uchar(swfData[i] ^ key[i % keyLen])
+            _out.write_uchar(swfData[i] ^ key[i % keyLen])
 
-    def write(self, obj):
+    def write(self, in_stream):
         raw = _BinaryStream(self._stream, True)
+        _in = _BinaryStream(in_stream, True)
+
+        key = 0
+
+        raw.write_char(83)
+        raw.write_char(0)
+        raw.write_int16(1)
+        raw.write_char(key)
+
+        swfData = _in.read_bytes()
+        swfLenght = in_stream.tell()
+
+        for i in range(0, swfLenght):
+            raw.write_uchar(swfData[i] ^ key)
