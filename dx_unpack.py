@@ -1,5 +1,8 @@
-import sys, json
+import sys
 from pydofus.dx import DX, InvalidDXFile
+
+# python dx_unpack.py file.dx
+# file output: file.swf
 
 file = sys.argv[1]
 

@@ -1,6 +1,9 @@
 import sys, json
 from pydofus.dlm import DLM, InvalidDLMFile
 
+# python dlm_pack.py file.json
+# file output: file.dlm
+
 file = sys.argv[1]
 
 json_input = open(file, "r")

@@ -35,7 +35,7 @@ class DX:
         raw = _BinaryStream(self._stream, True)
         _in = _BinaryStream(in_stream, True)
 
-        key = 0
+        key = 0 # WE DON'T NEED THIS FUCKING KEY, LET'S XOR WITH 0 !! :D
 
         raw.write_char(83)
         raw.write_char(0)

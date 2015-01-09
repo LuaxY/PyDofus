@@ -4,6 +4,9 @@ from pydofus.d2p import D2PReader, D2PBuilder, InvalidD2PFile
 from pydofus.swl import SWLReader, SWLBuilder, InvalidSWLFile
 from pydofus._binarystream import _BinaryStream
 
+# python d2p_pack.py file.d2p (require original file in input folder and unpacked file in output folder)
+# file output: ./output/~generated/file.d2p
+
 path_input = "./input/"
 path_output = "./output/"
 

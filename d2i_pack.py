@@ -2,6 +2,9 @@ import sys, json
 from pydofus.d2i import D2I, InvalidD2IFile
 from collections import OrderedDict
 
+# python d2i_pack.py file.json
+# file output: file.d2i
+
 file = sys.argv[1]
 
 json_input = open(file, "r", encoding="utf-8")
