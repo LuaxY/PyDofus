@@ -9,6 +9,14 @@ class _BinaryStream:
         self._base_stream = base_stream
         self._big_endian = big_endian
 
+    # Comment functions
+
+    def position(self, value=None):
+        if value is None:
+            return self._base_stream.tell()
+        else:
+            self._base_stream.seek(value)
+
     # Write functions
 
     def write_bytes(self, value):
