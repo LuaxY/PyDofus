@@ -1,9 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import zlib, tempfile, io, unicodedata
 from ._binarystream import _BinaryStream
-from collections import OrderedDict
 
 class InvalidDXFile(Exception):
     def __init__(self, message):
@@ -13,7 +11,6 @@ class InvalidDXFile(Exception):
 class DX:
     def __init__(self, stream):
         self._stream = stream
-        self._obj = OrderedDict()
 
     def read(self, out_stream):
         raw = _BinaryStream(self._stream, True)

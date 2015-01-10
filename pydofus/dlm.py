@@ -43,7 +43,6 @@ class DLM:
         buffer.seek(0)
 
         self._stream.write(zlib.compress(buffer.read()))
-        #self._stream.write(buffer.read())
 
         buffer.close()
 
