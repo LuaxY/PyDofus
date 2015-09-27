@@ -29,7 +29,7 @@ $ python d2i_pack.py file.json
 ###d2p
 
 ```Shell
-$ python d2p_pack.py
+$ python d2p_unpack.py
 # (all files in input folder)
 # folder output: ./output/{all files}.d2p
 ```
