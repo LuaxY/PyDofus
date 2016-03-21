@@ -376,16 +376,16 @@ class CellData:
             self.arrow = 15 & self._obj["tmpBits"]
 
             if self.useTopArrow():
-                self._map.topArrowCell.append(self.cellId)
+                self._parrent.topArrowCell.append(self.cellId)
 
             if self.useBottomArrow():
-                self._map.bottomArrowCell.append(self.cellId)
+                self._parrent.bottomArrowCell.append(self.cellId)
 
             if self.useLeftArrow():
-                self._map.leftArrowCell.append(self.cellId)
+                self._parrent.leftArrowCell.append(self.cellId)
 
             if self.useRightArrow():
-                self._map.rightArrowCell.append(self.cellId)
+                self._parrent.rightArrowCell.append(self.cellId)
 
     def write(self):
         self.raw().write_char(self._obj["floor"])
