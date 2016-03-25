@@ -17,6 +17,13 @@ class _BinaryStream:
         else:
             self._base_stream.seek(value)
 
+    def bytes_available(self):
+        position = self._base_stream.tell()
+        self._base_stream.seek(0, 2)
+        eof = self._base_stream.tell()
+        self._base_stream.seek(position, 0)
+        return eof - position
+
     # Write functions
 
     def write_bytes(self, value):
