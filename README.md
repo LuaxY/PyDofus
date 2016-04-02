@@ -8,7 +8,7 @@ Python 3 scripts to pack/unpack Dofus files
 - [x] **d2o** (unpack only)
 - [x] **dlm**
 - [x] **dx**
-- [ ] **ele**
+- [x] **ele** (unpack only)
 - [x] **swl**
 
 Usage
@@ -72,6 +72,13 @@ $ python dx_pack.py file.swf
 # file output: file.dx
 ```
 
+###ele
+
+```Shell
+$ python ele_unpack.py elements.ele
+# file output: elements.json
+```
+
 ###swl
 
 ```Shell
@@ -90,4 +97,4 @@ Authors
 
 **Marvin Roger** ([marvinroger](https://github.com/marvinroger)) : based on his work  
 **Yann Guineau** ([LuaxY](https://github.com/LuaxY)) : automated scripts for pack/unpack dofus files  
-**[nowis13](https://github.com/nowis13)** : add d2o unpack support
+**[nowis13](https://github.com/nowis13)** : add d2o and ele unpack support
