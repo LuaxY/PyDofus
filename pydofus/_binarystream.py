@@ -136,6 +136,9 @@ class _BinaryStream:
         length = self.read_uint16()
         return self._unpack(str(length) + 's', length)
 
+    def read_string_bytes(self, length):
+        return self._unpack(str(length) + 's', length)
+
     def _unpack(self, fmt, length=1):
         bytes = self.read_bytes(length)
         if self._big_endian:
