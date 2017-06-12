@@ -117,7 +117,7 @@ class _GraphicalElementData:
 
 class _NormalGraphicalElementData(_GraphicalElementData):
     def __init__(self, id, type):
-        super().__init__(id, type)
+        super(_NormalGraphicalElementData, self).__init__(id, type)
         self.gfx_id = 0
         self.height = 0
         self.horizontal_symetry = False
@@ -134,7 +134,7 @@ class _NormalGraphicalElementData(_GraphicalElementData):
         self.size['y'] = raw.read_int16()
 
     def get_dict(self):
-        ret = super().get_dict()
+        ret = super(_NormalGraphicalElementData, self).get_dict()
         ret['gfx_id'] = self.gfx_id
         ret['height'] = self.height
         ret['horizontal_symetry'] = self.horizontal_symetry
@@ -149,23 +149,23 @@ class _NormalGraphicalElementData(_GraphicalElementData):
 
 class _BoundingBoxGraphicalElementData(_NormalGraphicalElementData):
     def __init__(self, id, type):
-        super().__init__(id, type)
+        super(_BoundingBoxGraphicalElementData, self).__init__(id, type)
 
 
 class _AnimatedGraphicalElementData(_NormalGraphicalElementData):
     def __init__(self, id, type):
-        super().__init__(id, type)
+        super(_AnimatedGraphicalElementData, self).__init__(id, type)
         self.min_delay = 0
         self.max_delay = 0
 
     def read(self, raw, file_version):
-        super().read(raw, file_version)
+        super(_AnimatedGraphicalElementData, self).read(raw, file_version)
         if file_version >= 4:
             self.min_delay = raw.read_int32()
             self.max_delay = raw.read_int32()
 
     def get_dict(self):
-        ret = super().get_dict()
+        ret = super(_AnimatedGraphicalElementData, self).get_dict()
         ret['min_delay'] = self.min_delay
         ret['max_delay'] = self.max_delay
         return ret
@@ -173,7 +173,7 @@ class _AnimatedGraphicalElementData(_NormalGraphicalElementData):
 
 class _EntityGraphicalElementData(_GraphicalElementData):
     def __init__(self, id, type):
-        super().__init__(id, type)
+        super(_EntityGraphicalElementData, self).__init__(id, type)
         self.entity_look = ""
         self.horizontal_symetry = False
         self.play_animation = False
@@ -194,7 +194,7 @@ class _EntityGraphicalElementData(_GraphicalElementData):
             self.max_delay = raw.read_int32()
 
     def get_dict(self):
-        ret = super().get_dict()
+        ret = super(_EntityGraphicalElementData, self).get_dict()
         ret['entity_look'] = self.entity_look
         ret['horizontal_symetry'] = self.horizontal_symetry
         ret['play_animation'] = self.play_animation
@@ -206,29 +206,29 @@ class _EntityGraphicalElementData(_GraphicalElementData):
 
 class _ParticlesGraphicalElementData(_GraphicalElementData):
     def __init__(self, id, type):
-        super().__init__(id, type)
+        super(_ParticlesGraphicalElementData, self).__init__(id, type)
         self.script_id = 0
 
     def read(self, raw, file_version):
         self.script_id = raw.read_int16()
 
     def get_dict(self):
-        ret = super().get_dict()
+        ret = super(_ParticlesGraphicalElementData, self).get_dict()
         ret['script_id'] = self.script_id
         return ret
 
 
 class _BlendedGraphicalElementData(_NormalGraphicalElementData):
     def __init__(self, id, type):
-        super().__init__(id, type)
+        super(_BlendedGraphicalElementData, self).__init__(id, type)
         self.blend_mode = ""
 
     def read(self, raw, file_version):
-        super().read(raw, file_version)
+        super(_BlendedGraphicalElementData, self).read(raw, file_version)
         mode_length = raw.read_int32()
         self.blend_mode = raw.read_string_bytes(mode_length).decode('utf-8')
 
     def get_dict(self):
-        ret = super().get_dict()
+        ret = super(_BlendedGraphicalElementData, self).get_dict()
         ret['blend_mode'] = self.blend_mode
         return ret
